@@ -1,0 +1,46 @@
+version: '3.7'
+services:
+  mongodb:
+    image: mongo:6.0.13-jammy
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: testdb
+    volumes:
+      - ./data:/data/db
+  mariadb:
+    image: mariadb:lts-jammy
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_ROOT_PASSWORD: example
+      MARIADB_DATABASE: testdb
+
+  api_rest:
+    build:
+      context: ./api/
+      dockerfile: dockerfile
+    restart: on-failure
+    ports:
+      - 8050:8050
+    environment:
+      - FLASK_RUN_PORT=8050
+    depends_on:
+      - mongodb
+      - mariadb
+  api_graphql:
+    build:
+      context: ./api/
+      dockerfile: dockerfile_graphql
+    restart: on-failure
+    ports:
+      - 8051:8051
+    environment:
+      - FLASK_RUN_PORT=8051
+    depends_on:
+      - mongodb
+      - mariadb
